@@ -40,15 +40,31 @@ const char* dowToStr(int dayNum)
   }
 }
 
+int mapUserPin(int userPin)
+{
+  switch(userPin)
+  {
+    case 1: return DIGITAL1;
+    case 2: return DIGITAL2;
+    case 3: return DIGITAL3;
+    case 4: return DIGITAL4;
+    case 5: return DIGITAL5;
+    case 6: return DIGITAL6;
+    case 7: return DIGITAL7;
+    case 8: return DIGITAL8;
+    default: return -1;
+  }
+}
+
 void help()
 {
   USB.println("==============================================================================");
   USB.println("Available commands: ");
   USB.println("==============================================================================");
-  USB.println("red on --> turns on red LED");
-  USB.println("green on --> turns on green LED");
+  USB.println("red on/off --> turns on/off red LED");
+  USB.println("green on/off --> turns on/off green LED");
   USB.println("red blink ms t --> turns on red LED for ms miliseconds and t times");
-  USB.println("green blink ms times --> turns on green LED for ms miliseconds and t times");
+  USB.println("green blink ms t --> turns on green LED for ms miliseconds and t times");
   USB.println("set pin p state --> turns pin p to state (on/off)");
   USB.println("get pin p --> shows current state of pin p");
   USB.println("fmem --> shows current available RAM");
@@ -56,7 +72,7 @@ void help()
   USB.println("eeprom read a --> shows current value stored in address a");
   USB.println("get time --> shows current time");
   USB.println("set time t --> updates current time to t (yy:mm:dd:dow:hh:mm:ss)");
-  USB.println("get dow d --> shows day of date d (yy, mm, dd)");
+  USB.println("get dow d --> shows day of date d (yy mm dd)");
   USB.println("help --> shows this list of commands");
   USB.println("==============================================================================");
 }
@@ -104,19 +120,32 @@ void loop()
     }
     else if(strstr(command, "set pin"))
     {
-      int pin;
+      int userPin;
       char pinState[10];
-      sscanf(command, "set pin %d %s", &pin, &pinState);
+      sscanf(command, "set pin %d %s", &userPin, &pinState);
+
+      int pin = mapUserPin(userPin);
+      if (pin == -1)
+      {
+        USB.println("Invalid pin number! Use 1-8");
+        return;
+      }
       
       pinMode(pin, OUTPUT);
 
       if (strcmp(pinState, "on")==0)
       {
         digitalWrite(pin, HIGH);
+        USB.print("Pin: ");
+        USB.print(userPin);
+        USB.println(" set to on");
       }
       else if (strcmp(pinState, "off")==0)
       {
         digitalWrite(pin, LOW);
+        USB.print("Pin: ");
+        USB.print(userPin);
+        USB.println(" set to off");
       }
       else
       {
@@ -125,14 +154,21 @@ void loop()
     }
     else if(strstr(command, "get pin"))
     {
-      int pin;
-      sscanf(command, "get pin %d", &pin);
+      int userPin;
+      sscanf(command, "get pin %d", &userPin);
+
+      int pin = mapUserPin(userPin);
+      if (pin == -1)
+      {
+        USB.println("Invalid pin number! Use 1-8");
+        return;
+      }
       
       pinMode(pin, INPUT);
       int value = digitalRead(pin);
 
       USB.print("Pin ");
-      USB.print(pin);
+      USB.print(userPin);
       USB.print(": ");
       USB.println(value);
     }
